@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="500.0" prefWidth="750.0" spacing="15.0" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.projecte.VendesController">
+   <padding>
+      <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+   </padding>
+   <children>
+      
+      <!-- CABECERA: Logo, Oficina y Usuario -->
+      <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-border-color: #cccccc; -fx-border-width: 0 0 1 0; -fx-padding: 0 0 10 0;">
+         <children>
+            <Button mnemonicParsing="false" prefWidth="80.0" text="LOGO" />
+            <Label text="Oficina/Taquilla">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" prefWidth="120.0" text="User" />
+         </children>
+      </HBox>
+      
+      <!-- MENÚ PRINCIPAL -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="MENU:">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Button mnemonicParsing="false" text="Llistat de vendes" />
+            <Button mnemonicParsing="false" text="Mapa Sala" />
+            <Button mnemonicParsing="false" text="Control Portes" />
+            <Button mnemonicParsing="false" text="Cataleg" />
+         </children>
+      </HBox>
+      
+      <!-- FILTROS -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="Filtre:">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <MenuButton mnemonicParsing="false" text="Espectacle: Tots">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Sala Petita" />
+                  <MenuItem mnemonicParsing="false" text="Teatre Principal" />
+                  <MenuItem mnemonicParsing="false" text="Auditori Municipal" />
+               </items>
+            </MenuButton>
+            <MenuButton mnemonicParsing="false" text="Data: Avui">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Tot" />
+                  <MenuItem mnemonicParsing="false" text="Avui" />
+                  <MenuItem mnemonicParsing="false" text="Proxims 7 dies" />
+               </items>
+            </MenuButton>
+            <MenuButton mnemonicParsing="false" text="Estat">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Pagat" />
+                  <MenuItem mnemonicParsing="false" text="Reemb." />
+               </items>
+            </MenuButton>
+            <Region HBox.hgrow="ALWAYS" />
+            <TextField promptText="Cercar..." prefWidth="150.0" />
+         </children>
+      </HBox>
+      
+      <!-- TABLA DE VENTAS (Reemplaza al Canvas) -->
+      <TableView fx:id="tablaVendes" VBox.vgrow="ALWAYS">
+        <columns>
+          <TableColumn fx:id="colId" prefWidth="90.0" text="ID Venda" />
+          <TableColumn fx:id="colData" prefWidth="130.0" text="Data/Hora" />
+            <TableColumn fx:id="colEspectacle" prefWidth="180.0" text="Espectacle" />
+            <TableColumn fx:id="colImport" prefWidth="90.0" text="Import" />
+            <TableColumn fx:id="colEstat" prefWidth="100.0" text="Estat" />
+            <TableColumn fx:id="colAccions" prefWidth="100.0" text="Accions" />
+        </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+      
+      <!-- PIE DE PÁGINA: Paginación -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="Mostrant: 1-4 de 142 registers" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" text="&lt; Anterior" />
+            <Button mnemonicParsing="false" text="Següent &gt;" />
+         </children>
+      </HBox>
+      
+   </children>
+</VBox>
