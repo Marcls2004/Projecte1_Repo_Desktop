@@ -24,11 +24,8 @@ public class VendesController {
     @FXML private TableColumn<Venda, String> colData;
     @FXML private TableColumn<Venda, String> colEspectacle;
     @FXML private TableColumn<Venda, String> colImport;
-    @FXML private TableColumn<Venda, String> colEstat;
-    @FXML private TableColumn<Venda, String> colAccions;
 
     @FXML private MenuButton menuEspectacle;
-    @FXML private Label lblRegistres;
 
     private ObservableList<Venda> llistaVendes = FXCollections.observableArrayList();
     // Lista especial de JavaFX que permite aplicar filtros en tiempo real
@@ -40,8 +37,7 @@ public class VendesController {
         colData.setCellValueFactory(cellData -> cellData.getValue().dataHoraProperty());
         colEspectacle.setCellValueFactory(cellData -> cellData.getValue().espectacleProperty());
         colImport.setCellValueFactory(cellData -> cellData.getValue().importVendaProperty());
-        colEstat.setCellValueFactory(cellData -> cellData.getValue().estatProperty());
-        colAccions.setCellValueFactory(cellData -> cellData.getValue().accionsProperty());
+
 
         // 1. Cargamos todos los datos desde el archivo XML
         cargarDatosDesdeXML("data/tests/acontecimientos.xml");
@@ -92,9 +88,7 @@ public class VendesController {
                     preu = primeraEntrada.getAttribute("preu") + "€";
                 }
 
-                String estat = (i % 3 == 2) ? "Reemb." : "Pagat";
-
-                llistaVendes.add(new Venda(idVenda, dataHora, nom, preu, estat));
+                llistaVendes.add(new Venda(idVenda, dataHora, nom, preu));
 
                 // Añadimos el espectáculo al desplegable y le programamos su evento de clic
                 if (menuEspectacle != null) {
@@ -104,7 +98,6 @@ public class VendesController {
                 }
             }
 
-            actualizarContador();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -122,14 +115,7 @@ public class VendesController {
             llistaFiltrada.setPredicate(venda -> venda.espectacleProperty().get().equals(nomEspectacle));
             menuEspectacle.setText("Espectacle: " + nomEspectacle);
         }
-        actualizarContador();
+
     }
 
-    // Actualiza la etiqueta inferior de registros basándose en el filtro activo
-    private void actualizarContador() {
-        if (lblRegistres != null && llistaFiltrada != null) {
-            int visibles = llistaFiltrada.size();
-            lblRegistres.setText("Mostrant 1-" + visibles + " de " + llistaVendes.size() + " registers");
-        }
-    }
 }
