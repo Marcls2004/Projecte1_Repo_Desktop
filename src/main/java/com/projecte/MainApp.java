@@ -17,11 +17,11 @@ public class MainApp extends Application {
         
         // Bloque de seguridad para evitar que el programa se caiga si la foto no está
         try {
-            InputStream iconStream = getClass().getResourceAsStream("/icons/logo.png");
+            InputStream iconStream = getClass().getResourceAsStream("/icons/icon.png");
             if (iconStream != null) {
                 primaryStage.getIcons().add(new Image(iconStream));
             } else {
-                System.out.println("[Avis] No s'ha trobat la imatge a 'src/main/resources/icons/logo.png'. Es farà servir l'icona per defecte.");
+                System.out.println("[Avis] No s'ha trobat la imatge a 'src/main/resources/icons/icon.png'. Es farà servir l'icona per defecte.");
             }
         } catch (Exception e) {
             System.out.println("[Error] No s'ha pogut carregar l'icona de la finestra: " + e.getMessage());
