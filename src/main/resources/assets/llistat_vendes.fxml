@@ -33,7 +33,6 @@
                </font>
             </Label>
             <Region HBox.hgrow="ALWAYS" />
-            <Button mnemonicParsing="false" prefWidth="120.0" text="User" />
          </children>
       </HBox>
       

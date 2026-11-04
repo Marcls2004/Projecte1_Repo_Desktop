@@ -1,5 +1,7 @@
+
 package com.projecte;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -8,113 +10,186 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
+import javafx.beans.property.SimpleStringProperty;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import java.io.File;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class VendesController {
 
-    @FXML private TableView<Venda> tablaVendes;
-    @FXML private TableColumn<Venda, String> colId;
-    @FXML private TableColumn<Venda, String> colData;
-    @FXML private TableColumn<Venda, String> colEspectacle;
-    @FXML private TableColumn<Venda, String> colImport;
+    @FXML private TableView<Esdeveniment> tablaVendes;
+    @FXML private TableColumn<Esdeveniment, String> colId;
+    @FXML private TableColumn<Esdeveniment, String> colData;
+    @FXML private TableColumn<Esdeveniment, String> colEspectacle;
+    @FXML private TableColumn<Esdeveniment, String> colImport;
 
     @FXML private MenuButton menuEspectacle;
 
-    private ObservableList<Venda> llistaVendes = FXCollections.observableArrayList();
-    // Lista especial de JavaFX que permite aplicar filtros en tiempo real
-    private FilteredList<Venda> llistaFiltrada;
+    private ObservableList<Esdeveniment> llistaEsdeveniments =
+            FXCollections.observableArrayList();
+
+    private FilteredList<Esdeveniment> llistaFiltrada;
 
     @FXML
     public void initialize() {
-        colId.setCellValueFactory(cellData -> cellData.getValue().idProperty());
-        colData.setCellValueFactory(cellData -> cellData.getValue().dataHoraProperty());
-        colEspectacle.setCellValueFactory(cellData -> cellData.getValue().espectacleProperty());
-        colImport.setCellValueFactory(cellData -> cellData.getValue().importVendaProperty());
 
+        // Configuramos las columnas para mostrar acontecimientos.
+        colId.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getId()));
 
-        // 1. Cargamos todos los datos desde el archivo XML
-        cargarDatosDesdeXML("data/tests/acontecimientos.xml");
+        colData.setCellValueFactory(cell ->
+                new SimpleStringProperty(
+                        cell.getValue().getDataHora().replace("T", " ")
+                ));
 
-        // 2. Inicializamos la lista filtrada envolviendo a la lista original
-        llistaFiltrada = new FilteredList<>(llistaVendes, p -> true);
+        colEspectacle.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getNom()));
 
-        // 3. Asignamos la lista con capacidades de filtro a la vista de la tabla
+        colImport.setText("Tipus d'entrada");
+
+        colImport.setCellValueFactory(cell -> {
+            StringBuilder text = new StringBuilder();
+
+            for (TipusEntrada entrada :
+                    cell.getValue().getTipusEntrades()) {
+
+                if (text.length() > 0) {
+                    text.append(" | ");
+                }
+
+                text.append(entrada.getNomTipus())
+                    .append(": ")
+                    .append(entrada.getPreuTipus())
+                    .append(" €");
+            }
+
+            return new SimpleStringProperty(text.toString());
+        });
+
+        // Preparamos la lista y la tabla.
+        llistaFiltrada = new FilteredList<>(
+                llistaEsdeveniments, p -> true
+        );
+
         tablaVendes.setItems(llistaFiltrada);
+
+        // Escuchamos los mensajes del servidor.
+        ClientWs.establirReceptor(this::rebreMissatge);
+
+        // Solicitamos los acontecimientos.
+        ClientWs.enviar("{\"type\":\"getEsdeveniments\"}");
     }
 
-    private void cargarDatosDesdeXML(String rutaArchivo) {
+    private void rebreMissatge(String message) {
+
         try {
-            File xmlFile = new File(rutaArchivo);
-            if (!xmlFile.exists()) {
-                System.err.println("Error: No se encuentra el archivo XML en: " + xmlFile.getAbsolutePath());
+            JSONObject resposta = new JSONObject(message);
+
+            if (!"esdeveniments".equals(
+                    resposta.optString("type"))) {
                 return;
             }
 
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document doc = builder.parse(xmlFile);
-            doc.getDocumentElement().normalize();
+            JSONArray dades = resposta.getJSONArray("data");
 
-            if (menuEspectacle != null) {
-                menuEspectacle.getItems().clear();
-                
-                // Creamos la opción por defecto para restaurar todos los registros
-                MenuItem itemTots = new MenuItem("Espectacle: Tots");
-                itemTots.setOnAction(e -> aplicarFiltro("Tots"));
-                menuEspectacle.getItems().add(itemTots);
-            }
+            List<Esdeveniment> esdeveniments = new ArrayList<>();
 
-            NodeList esdeveniments = doc.getElementsByTagName("esdeveniment");
-            int totalRegistres = esdeveniments.getLength();
+            for (int i = 0; i < dades.length(); i++) {
 
-            for (int i = 0; i < totalRegistres; i++) {
-                Element esdeveniment = (Element) esdeveniments.item(i);
-                
-                String idVenda = "#V-8" + (8991 - i); 
-                String nom = esdeveniment.getElementsByTagName("nom").item(0).getTextContent();
-                String dataHora = esdeveniment.getElementsByTagName("dataHora").item(0).getTextContent().replace("T", " ");
-                
-                NodeList tipusEntrades = esdeveniment.getElementsByTagName("tipusEntrada");
-                String preu = "0.00€";
-                if (tipusEntrades.getLength() > 0) {
-                    Element primeraEntrada = (Element) tipusEntrades.item(0);
-                    preu = primeraEntrada.getAttribute("preu") + "€";
+                JSONObject jsonEsdeveniment =
+                        dades.getJSONObject(i);
+
+                JSONArray jsonEntrades =
+                        jsonEsdeveniment.getJSONArray("tipusEntrades");
+
+                List<TipusEntrada> entrades = new ArrayList<>();
+
+                for (int j = 0; j < jsonEntrades.length(); j++) {
+
+                    JSONObject jsonEntrada =
+                            jsonEntrades.getJSONObject(j);
+
+                    TipusEntrada entrada = new TipusEntrada(
+                            jsonEntrada.getString("idTipus"),
+                            jsonEntrada.getString("nomTipus"),
+                            jsonEntrada.getDouble("preuTipus"),
+                            jsonEntrada.getInt("quotaTipus"),
+                            jsonEntrada.optString(
+                                    "tipusZona", "general")
+                    );
+
+                    entrades.add(entrada);
                 }
 
-                llistaVendes.add(new Venda(idVenda, dataHora, nom, preu));
+                Esdeveniment esdeveniment = new Esdeveniment(
+                        jsonEsdeveniment.getString("id"),
+                        jsonEsdeveniment.getString("nom"),
+                        jsonEsdeveniment.getString("dataHora"),
+                        jsonEsdeveniment.getString("categoria"),
+                        jsonEsdeveniment.getString("descripcio"),
+                        entrades
+                );
 
-                // Añadimos el espectáculo al desplegable y le programamos su evento de clic
+                esdeveniments.add(esdeveniment);
+            }
+
+            Platform.runLater(() -> {
+
+                llistaEsdeveniments.setAll(esdeveniments);
+
+                // Actualizamos el filtro de acontecimientos.
                 if (menuEspectacle != null) {
-                    MenuItem itemEspectacle = new MenuItem(nom);
-                    itemEspectacle.setOnAction(e -> aplicarFiltro(nom));
-                    menuEspectacle.getItems().add(itemEspectacle);
-                }
-            }
 
+                    menuEspectacle.getItems().clear();
+
+                    MenuItem tots = new MenuItem("Tots");
+                    tots.setOnAction(e -> aplicarFiltro("Tots"));
+
+                    menuEspectacle.getItems().add(tots);
+
+                    for (Esdeveniment esdeveniment :
+                            llistaEsdeveniments) {
+
+                        MenuItem item = new MenuItem(
+                                esdeveniment.getNom());
+
+                        item.setOnAction(e ->
+                                aplicarFiltro(esdeveniment.getNom()));
+
+                        menuEspectacle.getItems().add(item);
+                    }
+                }
+
+                System.out.println(
+                        "Esdeveniments carregats: "
+                        + llistaEsdeveniments.size());
+            });
 
         } catch (Exception e) {
+            System.out.println(
+                    "Error processant els esdeveniments:");
             e.printStackTrace();
         }
     }
 
-    // Método encargado de realizar el filtrado de filas y actualizar la interfaz gráfica
     private void aplicarFiltro(String nomEspectacle) {
-        if (nomEspectacle.equals("Tots")) {
-            // Elimina cualquier restricción y muestra todo
-            llistaFiltrada.setPredicate(venda -> true);
+
+        if ("Tots".equals(nomEspectacle)) {
+
+            llistaFiltrada.setPredicate(esdeveniment -> true);
+
             menuEspectacle.setText("Espectacle: Tots");
+
         } else {
-            // Compara el nombre del espectáculo de cada fila con el seleccionado
-            llistaFiltrada.setPredicate(venda -> venda.espectacleProperty().get().equals(nomEspectacle));
-            menuEspectacle.setText("Espectacle: " + nomEspectacle);
+
+            llistaFiltrada.setPredicate(esdeveniment ->
+                    esdeveniment.getNom().equals(nomEspectacle));
+
+            menuEspectacle.setText(
+                    "Espectacle: " + nomEspectacle);
         }
-
     }
-
 }
