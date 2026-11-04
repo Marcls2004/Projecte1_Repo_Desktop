@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="500.0" prefWidth="750.0" spacing="15.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projecte.VendesController">
+   <padding>
+      <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+   </padding>
+   <children>
+      
+      <!-- CABECERA: Logo, Oficina y Usuario -->
+      <HBox alignment="CENTER_LEFT" spacing="15.0" style="-fx-border-color: #cccccc; -fx-border-width: 0 0 1 0; -fx-padding: 0 0 10 0;">
+         <children>
+            <ImageView fitHeight="80.0" fitWidth="80.0" pickOnBounds="true" preserveRatio="true">
+               <Image url="@/icons/icon.png" />
+            </ImageView>
+            <Label text="Oficina/Taquilla">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      
+      <!-- MENÚ PRINCIPAL -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="MENU:">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <Button mnemonicParsing="false" text="Llistat de vendes" />
+            <Button mnemonicParsing="false" text="Mapa Sala" />
+            <Button mnemonicParsing="false" text="Control Portes" />
+            <Button mnemonicParsing="false" text="Cataleg" />
+         </children>
+      </HBox>
+      
+      <!-- FILTROS -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="Filtre:">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <MenuButton mnemonicParsing="false" text="Espectacle: Tots">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Sala Petita" />
+                  <MenuItem mnemonicParsing="false" text="Teatre Principal" />
+                  <MenuItem mnemonicParsing="false" text="Auditori Municipal" />
+                  <MenuItem mnemonicParsing="false" text="Espai Jove" />
+                  <MenuItem mnemonicParsing="false" text="Palau de Congressos" />
+                  <MenuItem mnemonicParsing="false" text="Sala Rock &amp; Live" />
+                  <MenuItem mnemonicParsing="false" text="Teatre de l'Artesà" />
+                  <MenuItem mnemonicParsing="false" text="Estadi Municipal" />
+                  <MenuItem mnemonicParsing="false" text="Ateneu Cultural" />
+                  <MenuItem mnemonicParsing="false" text="Pavelló d'Esports" />
+                  <MenuItem mnemonicParsing="false" text="Cine Club Paradiso" />
+                  <MenuItem mnemonicParsing="false" text="La Factoria Cultural" />
+                  <MenuItem mnemonicParsing="false" text="Auditori de la Música" />
+                  <MenuItem mnemonicParsing="false" text="Teatre de Titelles" />
+                  <MenuItem mnemonicParsing="false" text="Sala Jazz Underground" />
+                  <MenuItem mnemonicParsing="false" text="Espai a l'Aire Lliure" />
+                  <MenuItem mnemonicParsing="false" text="Claustre del Monestir" />
+                  <MenuItem mnemonicParsing="false" text="Teatre l'Amistat" />
+                  <MenuItem mnemonicParsing="false" text="Multiespai i Fira" />
+                  <MenuItem mnemonicParsing="false" text="Sala de Microteatre" />
+               </items>
+            </MenuButton>
+            <MenuButton mnemonicParsing="false" text="Data: Avui">
+               <items>
+                  <MenuItem mnemonicParsing="false" text="Tot" />
+                  <MenuItem mnemonicParsing="false" text="Avui" />
+                  <MenuItem mnemonicParsing="false" text="Proxims 7 dies" />
+                  <MenuItem mnemonicParsing="false" text="Proxims 30 dies" />
+                  <MenuItem mnemonicParsing="false" text="Proxims 3 mesos" />
+                  <MenuItem mnemonicParsing="false" text="Proxims 6 mesos" />
+               </items>
+            </MenuButton>
+            <Region HBox.hgrow="ALWAYS" />
+            <TextField prefWidth="150.0" promptText="Cercar..." />
+         </children>
+      </HBox>
+      
+      <!-- TABLA DE VENTAS -->
+      <TableView fx:id="tablaVendes" VBox.vgrow="ALWAYS">
+         <columns>
+            <TableColumn fx:id="colId" prefWidth="90.0" text="ID Venda" />
+            <TableColumn fx:id="colData" prefWidth="130.0" text="Data/Hora" />
+            <TableColumn fx:id="colEspectacle" prefWidth="180.0" text="Espectacle" />
+            <TableColumn fx:id="colImport" prefWidth="300.0" text="Tipus d'entrada" />
+         </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="UNCONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+      
+   </children>
+</VBox>
