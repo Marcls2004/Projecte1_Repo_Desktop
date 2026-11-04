@@ -1,4 +1,3 @@
-
 package com.projecte;
 
 import javafx.application.Platform;
