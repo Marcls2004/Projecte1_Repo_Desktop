@@ -8,12 +8,32 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import java.io.InputStream;
 
+import org.w3c.dom.Document;
+
 public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
+        // Por defecto pantalla de configuracion
+        String pantalla = "/assets/pantalla_inici.fxml";
+
+        // Si ya hay configuración guardada, intentamos reconectar
+        if (ConfigManager.existeix()) {
+            Document doc = ConfigManager.carregar();
+
+            if (doc != null) {
+                String url = doc.getDocumentElement().getAttribute("url");
+
+                // Si reconecta bien, nos saltamos la configuración
+                if (ClientWs.connectar(url)) {
+                    pantalla = "/assets/llistat_vendes.fxml";
+                }
+                // Si falla, nos quedamos en pantalla_inici para corregir
+            }
+        }
+
         // Carga de la interfaz gráfica
-        Parent root = FXMLLoader.load(getClass().getResource("/assets/llistat_vendes.fxml"));
-        primaryStage.setTitle("Llistat de Vendes - Sistema de Gestió");
+        Parent root = FXMLLoader.load(getClass().getResource(pantalla));
+        primaryStage.setTitle("Entradium - Sistema de Gestió d'entrades");
         
         // Bloque de seguridad para evitar que el programa se caiga si la foto no está
         try {
@@ -29,6 +49,12 @@ public class MainApp extends Application {
 
         primaryStage.setScene(new Scene(root, 780, 520));
         primaryStage.show();
+    }
+
+    // JavaFX lo llama al cerrar la ventana
+    @Override
+    public void stop() {
+        ClientWs.tancar();
     }
 
     public static void main(String[] args) {
