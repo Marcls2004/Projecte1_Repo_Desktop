@@ -1,13 +1,19 @@
+
 package com.projecte;
 
 import java.net.URI;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 public class ClientWs extends WebSocketClient {
+
     private static ClientWs connexio;
+
+    // Controlador que recibirá los mensajes del servidor
+    private Consumer<String> receptorMissatges;
 
     public ClientWs(URI uri) {
         super(uri);
@@ -15,22 +21,35 @@ public class ClientWs extends WebSocketClient {
 
     public static boolean connectar(String url) {
         try {
-            // si ya habia una conexion anterior la cerramos
             tancar();
 
             ClientWs client = new ClientWs(new URI(url));
-            
-            // Esperar un maximo de 3 segundos
+
             if (!client.connectBlocking(3, TimeUnit.SECONDS)) {
                 System.out.println("ERROR: no s'ha pogut connectar a " + url);
                 return false;
             }
+
             connexio = client;
             return true;
+
         } catch (Exception e) {
-            // URL mal formada, etc.
             System.out.println("ERROR: connexio fallida: " + e.getMessage());
             return false;
+        }
+    }
+
+    public static void enviar(String missatge) {
+        if (connexio != null && connexio.isOpen()) {
+            connexio.send(missatge);
+        } else {
+            System.out.println("ERROR: no hi ha connexio amb el servidor");
+        }
+    }
+
+    public static void establirReceptor(Consumer<String> receptor) {
+        if (connexio != null) {
+            connexio.receptorMissatges = receptor;
         }
     }
 
@@ -48,8 +67,11 @@ public class ClientWs extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-        // De momento solo mostramos lo que llega (el "welcome" del servidor)
         System.out.println("Missatge rebut: " + message);
+
+        if (receptorMissatges != null) {
+            receptorMissatges.accept(message);
+        }
     }
 
     @Override
