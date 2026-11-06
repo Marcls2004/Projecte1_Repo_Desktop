@@ -191,4 +191,20 @@ public class VendesController {
                     "Espectacle: " + nomEspectacle);
         }
     }
+    
+    @FXML
+    private void handleLlistatVendes(javafx.event.ActionEvent event) {
+        System.out.println("[DEMO] Clic en Llistat de vendes - Cambiando a vista de lista");
+        // Aquí puedes meter código para refrescar la tabla si lo necesitas
+    }
+
+    @FXML
+    private void handleControlPortes(javafx.event.ActionEvent event) {
+        System.out.println("[DEMO] Clic en Control de Portes - Funcionalidad desvinculada para la demo");
+    }
+
+    @FXML
+    private void handleCataleg(javafx.event.ActionEvent event) {
+        System.out.println("[DEMO] Clic en Cataleg - Funcionalidad desvinculada para la demo");
+    }
 }

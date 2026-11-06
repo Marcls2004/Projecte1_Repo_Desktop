@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="500.0" prefWidth="750.0" spacing="15.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projecte.VendesController">
+<VBox prefHeight="500.0" prefWidth="750.0" spacing="15.0" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.projecte.VendesController">
    <padding>
       <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
    </padding>
@@ -44,10 +44,13 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <Button mnemonicParsing="false" text="Llistat de vendes" />
+            <Button mnemonicParsing="false" text="Llistat de vendes" onAction="#handleLlistatVendes" />
+            
+            <!-- EL BOTÓN DE MAPA SALA SE QUEDA COMPLETAMENTE UNBOUND / SUELTO -->
             <Button mnemonicParsing="false" text="Mapa Sala" />
-            <Button mnemonicParsing="false" text="Control Portes" />
-            <Button mnemonicParsing="false" text="Cataleg" />
+            
+            <Button mnemonicParsing="false" text="Control Portes" onAction="#handleControlPortes" />
+            <Button mnemonicParsing="false" text="Cataleg" onAction="#handleCataleg" />
          </children>
       </HBox>
       
@@ -59,30 +62,10 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <MenuButton mnemonicParsing="false" text="Espectacle: Tots">
-               <items>
-                  <MenuItem mnemonicParsing="false" text="Sala Petita" />
-                  <MenuItem mnemonicParsing="false" text="Teatre Principal" />
-                  <MenuItem mnemonicParsing="false" text="Auditori Municipal" />
-                  <MenuItem mnemonicParsing="false" text="Espai Jove" />
-                  <MenuItem mnemonicParsing="false" text="Palau de Congressos" />
-                  <MenuItem mnemonicParsing="false" text="Sala Rock &amp; Live" />
-                  <MenuItem mnemonicParsing="false" text="Teatre de l'Artesà" />
-                  <MenuItem mnemonicParsing="false" text="Estadi Municipal" />
-                  <MenuItem mnemonicParsing="false" text="Ateneu Cultural" />
-                  <MenuItem mnemonicParsing="false" text="Pavelló d'Esports" />
-                  <MenuItem mnemonicParsing="false" text="Cine Club Paradiso" />
-                  <MenuItem mnemonicParsing="false" text="La Factoria Cultural" />
-                  <MenuItem mnemonicParsing="false" text="Auditori de la Música" />
-                  <MenuItem mnemonicParsing="false" text="Teatre de Titelles" />
-                  <MenuItem mnemonicParsing="false" text="Sala Jazz Underground" />
-                  <MenuItem mnemonicParsing="false" text="Espai a l'Aire Lliure" />
-                  <MenuItem mnemonicParsing="false" text="Claustre del Monestir" />
-                  <MenuItem mnemonicParsing="false" text="Teatre l'Amistat" />
-                  <MenuItem mnemonicParsing="false" text="Multiespai i Fira" />
-                  <MenuItem mnemonicParsing="false" text="Sala de Microteatre" />
-               </items>
-            </MenuButton>
+            
+            <!-- SE AÑADE EL fx:id REQUERIDO POR TU CONTROLADOR -->
+            <MenuButton fx:id="menuEspectacle" mnemonicParsing="false" text="Espectacle: Tots" />
+            
             <MenuButton mnemonicParsing="false" text="Data: Avui">
                <items>
                   <MenuItem mnemonicParsing="false" text="Tot" />
