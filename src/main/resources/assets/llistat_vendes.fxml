@@ -8,14 +8,14 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="500.0" prefWidth="750.0" spacing="15.0" xmlns="http://javafx.com" xmlns:fx="http://javafx.com" fx:controller="com.projecte.VendesController">
+<VBox prefHeight="500.0" prefWidth="750.0" spacing="15.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projecte.VendesController">
    <padding>
       <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
    </padding>
@@ -44,13 +44,13 @@
                   <Font name="System Bold" size="13.0" />
                </font>
             </Label>
-            <Button mnemonicParsing="false" text="Llistat de vendes" onAction="#handleLlistatVendes" />
             
             <!-- EL BOTÓN DE MAPA SALA SE QUEDA COMPLETAMENTE UNBOUND / SUELTO -->
-            <Button mnemonicParsing="false" text="Mapa Sala" />
+            <Button mnemonicParsing="false" onAction="#obrirMapa" text="Mapa Sala" />
+            <Button mnemonicParsing="false" onAction="#handleLlistatVendes" text="Llistat de vendes" visible="false" />
             
-            <Button mnemonicParsing="false" text="Control Portes" onAction="#handleControlPortes" />
-            <Button mnemonicParsing="false" text="Cataleg" onAction="#handleCataleg" />
+            <Button mnemonicParsing="false" onAction="#handleControlPortes" text="Control Portes" visible="false" />
+            <Button mnemonicParsing="false" onAction="#handleCataleg" text="Cataleg" visible="false" />
          </children>
       </HBox>
       
@@ -66,7 +66,7 @@
             <!-- SE AÑADE EL fx:id REQUERIDO POR TU CONTROLADOR -->
             <MenuButton fx:id="menuEspectacle" mnemonicParsing="false" text="Espectacle: Tots" />
             
-            <MenuButton mnemonicParsing="false" text="Data: Avui">
+            <MenuButton mnemonicParsing="false" text="Data: Avui" visible="false">
                <items>
                   <MenuItem mnemonicParsing="false" text="Tot" />
                   <MenuItem mnemonicParsing="false" text="Avui" />
@@ -77,7 +77,7 @@
                </items>
             </MenuButton>
             <Region HBox.hgrow="ALWAYS" />
-            <TextField prefWidth="150.0" promptText="Cercar..." />
+            <TextField prefWidth="150.0" promptText="Cercar..." visible="false" />
          </children>
       </HBox>
       

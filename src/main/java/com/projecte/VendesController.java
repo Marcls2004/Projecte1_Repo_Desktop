@@ -5,15 +5,20 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.stage.Stage;
 import javafx.beans.property.SimpleStringProperty;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -206,5 +211,18 @@ public class VendesController {
     @FXML
     private void handleCataleg(javafx.event.ActionEvent event) {
         System.out.println("[DEMO] Clic en Cataleg - Funcionalidad desvinculada para la demo");
+    }
+
+    @FXML
+    private void obrirMapa(javafx.event.ActionEvent event) {
+        try {
+            Node boto = (Node) event.getSource();
+            Stage stage = (Stage) boto.getScene().getWindow();
+            
+            Parent root = FXMLLoader.load(getClass().getResource("/assets/mapa_sala.fxml"));
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            System.out.println("No s'ha pogut obrir la pantalla del mapa de sales: " + e.getMessage());
+        }
     }
 }
