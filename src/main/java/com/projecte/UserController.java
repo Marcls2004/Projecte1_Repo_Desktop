@@ -57,9 +57,9 @@ public class UserController {
             return;
         }
 
-        // 2. Validamos que la URL no esté vacía y tenga formato ws:// o wss:// válido
-        if (URL.isEmpty() || (!URL.startsWith("ws://") && !URL.startsWith("wss://")) || URL.length() <= 6) {
-            mostrarError("La URL no es valida (ha de començar per ws:// o wss://)");
+        // 2. Validamos que la URL no esté vacía y tenga formato wss:// válido
+        if (URL.isEmpty() || (!URL.startsWith("wss://")) || URL.length() <= 6) {
+            mostrarError("La URL no es valida (ha de començar per wss://)");
             return;
         }
 
