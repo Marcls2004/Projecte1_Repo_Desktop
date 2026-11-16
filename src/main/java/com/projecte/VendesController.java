@@ -10,9 +10,11 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.beans.property.SimpleStringProperty;
 
 import org.json.JSONArray;
@@ -79,6 +81,17 @@ public class VendesController {
         );
 
         tablaVendes.setItems(llistaFiltrada);
+
+        // Spec 19: columna amb un botó "Mapa" a cada fila (veure CellaMapa)
+        MapaController.idEsdeveniment = null;
+        TableColumn<Esdeveniment, Void> colMapa = new TableColumn<>("Mapa");
+        colMapa.setCellFactory(new Callback<TableColumn<Esdeveniment, Void>, TableCell<Esdeveniment, Void>>() {
+            @Override
+            public TableCell<Esdeveniment, Void> call(TableColumn<Esdeveniment, Void> columna) {
+                return new CellaMapa(VendesController.this);
+            }
+        });
+        tablaVendes.getColumns().add(colMapa);
 
         // Escuchamos los mensajes del servidor.
         ClientWs.establirReceptor(this::rebreMissatge);
@@ -214,7 +227,7 @@ public class VendesController {
     }
 
     @FXML
-    private void obrirMapa(javafx.event.ActionEvent event) {
+    public void obrirMapa(javafx.event.ActionEvent event) {
         try {
             Node boto = (Node) event.getSource();
             Stage stage = (Stage) boto.getScene().getWindow();
