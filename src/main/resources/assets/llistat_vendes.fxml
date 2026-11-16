@@ -31,7 +31,7 @@
                </font>
             </Label>
             <Region HBox.hgrow="ALWAYS" />
-            <Button id="btConfig" mnemonicParsing="false" text="Configuració" textAlignment="RIGHT" />
+            <Button id="btConfig" mnemonicParsing="false" text="Configuració" onAction="#obrirConfiguracio"/>
          </children>
       </HBox>
       

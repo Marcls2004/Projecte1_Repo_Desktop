@@ -98,6 +98,7 @@ public class VendesController {
 
         // Solicitamos los acontecimientos.
         ClientWs.enviar("{\"type\":\"getEsdeveniments\"}");
+        
     }
 
     private void rebreMissatge(String message) {
@@ -236,6 +237,19 @@ public class VendesController {
             stage.getScene().setRoot(root);
         } catch (IOException e) {
             System.out.println("No s'ha pogut obrir la pantalla del mapa de sales: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void obrirConfiguracio(javafx.event.ActionEvent event) {
+        try {
+            Node boto = (Node) event.getSource();
+            Stage stage = (Stage) boto.getScene().getWindow();
+            
+            Parent root = FXMLLoader.load(getClass().getResource("/assets/config.fxml"));
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            System.out.println("No s'ha pogut obrir la pantalla de configuració: " + e.getMessage());
         }
     }
 }
