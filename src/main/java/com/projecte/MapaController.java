@@ -2,8 +2,14 @@ package com.projecte;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -24,21 +30,84 @@ public class MapaController {
     @FXML private AnchorPane contenidorMapa;
     @FXML private Label lbOcupacio;
 
-    // Zones de la sala (de moment, dades de test)
-    private List<ZonaMapa> zones;
+    // Esdeveniment del qual es mostra el mapa (el posa el botó "Mapa" del llistat)
+    public static String idEsdeveniment;
+
+    // Colors per a les zones, en ordre
+    private static final String[] COLORS = {"#3498db", "#27ae60", "#e67e22", "#9b59b6", "#16a085", "#c0392b"};
+
+    // Zones de la sala, carregades de la BD a través del servidor
+    private List<ZonaMapa> zones = new ArrayList<>();
 
     @FXML
     private void initialize() {
-        System.out.println("Mapa obert");
+        if (idEsdeveniment == null) {
+            lbOcupacio.setText("Tria un esdeveniment del llistat amb el botó \"Mapa\"");
+            return;
+        }
 
-        zones = DadesTestMapa.crearZones();
+        lbOcupacio.setText("Carregant el mapa...");
 
-        mostrarOcupacio();
-        dibuixarMapa();
+        // Cada cop que s'obre el mapa es demanen les dades actuals al servidor
+        ClientWs.establirReceptor(new Consumer<String>() {
+            @Override
+            public void accept(String missatge) {
+                rebreMissatge(missatge);
+            }
+        });
+        ClientWs.enviar("{\"type\":\"getMapa\",\"idEsdeveniment\":\"" + idEsdeveniment + "\"}");
     }
 
-    private void mostrarOcupacio() {
-        String text = "|  ";
+    // Resposta del servidor: zones del recinte i entrades venudes de l'esdeveniment
+    private void rebreMissatge(String missatge) {
+        JSONObject resposta = new JSONObject(missatge);
+        if (!"mapa".equals(resposta.optString("type"))) {
+            return;
+        }
+
+        List<ZonaMapa> zonesNoves = new ArrayList<>();
+        JSONArray jZones = resposta.getJSONArray("zones");
+
+        for (int i = 0; i < jZones.length(); i++) {
+            JSONObject jZona = jZones.getJSONObject(i);
+            JSONArray venuts = jZona.getJSONArray("venuts");
+            String color = COLORS[i % COLORS.length];
+
+            if ("numerada".equals(jZona.getString("tipus"))) {
+                ZonaMapa zona = new ZonaMapa(jZona.getString("nom"), color,
+                        jZona.getInt("filaInici"), jZona.getInt("columnaInici"),
+                        jZona.getInt("numFiles"), jZona.getInt("seientsPerFila"));
+
+                // Marquem com a venuts els seients que tenen entrada
+                for (int j = 0; j < venuts.length(); j++) {
+                    JSONObject v = venuts.getJSONObject(j);
+                    zona.getSeient(v.getInt("fila"), v.getInt("seient")).vendre(
+                            v.getString("comprador"), v.getString("correu"),
+                            v.getString("localitzador"), v.getString("tipus"));
+                }
+                zonesNoves.add(zona);
+            } else {
+                // Zona general: només aforament i entrades venudes
+                zonesNoves.add(new ZonaMapa(jZona.getString("nom"), color,
+                        jZona.getInt("aforament"), venuts.length()));
+            }
+        }
+
+        zones = zonesNoves;
+        final String titol = resposta.optString("recinte") + " - " + resposta.optString("esdeveniment");
+
+        // El missatge arriba en un altre fil: la pantalla s'actualitza al fil de JavaFX
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                mostrarOcupacio(titol);
+                dibuixarMapa();
+            }
+        });
+    }
+
+    private void mostrarOcupacio(String titol) {
+        String text = titol + "\n|  ";
         for (ZonaMapa zona : zones) {
             text += zona.getNom() + ": " + zona.getOcupades()
                 + "/" + zona.getAforament() + "  |  ";
@@ -54,6 +123,17 @@ public class MapaController {
         graella.setPadding(new Insets(15));
         graella.setStyle("-fx-background-color: #1a1a2e;"); // fons fosc = passadissos
 
+        // Fins on arriben les zones numerades (per posar les generals a sota)
+        int maxFila = 0;
+        int maxColumna = 1;
+        for (ZonaMapa zona : zones) {
+            if (zona.esNumerada()) {
+                maxFila = Math.max(maxFila, zona.getFilaInici() + zona.getNumFiles());
+                maxColumna = Math.max(maxColumna, zona.getColumnaInici() + zona.getSeientsPerFila());
+            }
+        }
+        int filaGeneral = maxFila + 1;
+
         for (ZonaMapa zona : zones) {
             if (!zona.esNumerada()) {
                 // Zona general: un bloc únic sota el mapa, amb nom i ocupació
@@ -64,8 +144,9 @@ public class MapaController {
                 etiqueta.setStyle("-fx-background-color: " + zona.getColor()
                         + "; -fx-text-fill: white; -fx-alignment: center;");
 
-                // columna 0, fila 11 (sota les 10 files de la platea), ocupa 30 columnes
-                graella.add(etiqueta, 0, 11, 30, 1);
+                // Just a sota de l'última fila i tan ample com la sala
+                graella.add(etiqueta, 0, filaGeneral, maxColumna, 1);
+                filaGeneral++;
                 continue;
             }
 
@@ -102,7 +183,7 @@ public class MapaController {
             }
         }
 
-        contenidorMapa.getChildren().add(graella);
+        contenidorMapa.getChildren().setAll(graella);
     }
 
     @FXML
