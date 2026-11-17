@@ -43,10 +43,6 @@
                </font>
             </Label>
             
-            <!-- EL BOTÓN DE MAPA SALA SE QUEDA COMPLETAMENTE UNBOUND / SUELTO -->
-            <Button mnemonicParsing="false" onAction="#obrirMapa" text="Mapa Sala" />
-            <Button mnemonicParsing="false" onAction="#handleLlistatVendes" text="Llistat de vendes" visible="false" />
-            
             <Button mnemonicParsing="false" onAction="#handleControlPortes" text="Control Portes" />
             <Button mnemonicParsing="false" onAction="#handleCataleg" text="Cataleg" visible="false" />
             <Button id="btConfig" mnemonicParsing="false" text="Configuració" onAction="#obrirConfiguracio"/>
