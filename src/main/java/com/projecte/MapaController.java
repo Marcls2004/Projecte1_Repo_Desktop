@@ -181,7 +181,7 @@ public class MapaController {
     }
 
     private void mostrarOcupacio(String titol) {
-        String text = titol + "     |  ";
+        String text = titol + "\n|  ";
         for (ZonaMapa zona : zones) {
             text += zona.getNom() + ": " + zona.getOcupades()
                 + "/" + zona.getAforament() + "  |  ";
