@@ -49,7 +49,7 @@
             <Button mnemonicParsing="false" onAction="#obrirMapa" text="Mapa Sala" />
             <Button mnemonicParsing="false" onAction="#handleLlistatVendes" text="Llistat de vendes" visible="false" />
             
-            <Button mnemonicParsing="false" onAction="#handleControlPortes" text="Control Portes" visible="false" />
+            <Button mnemonicParsing="false" onAction="#handleControlPortes" text="Control Portes" />
             <Button mnemonicParsing="false" onAction="#handleCataleg" text="Cataleg" visible="false" />
          </children>
       </HBox>

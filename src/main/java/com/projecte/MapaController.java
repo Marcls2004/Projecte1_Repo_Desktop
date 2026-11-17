@@ -19,6 +19,15 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 public class MapaController {
 
     @FXML private AnchorPane contenidorMapa;
@@ -26,6 +35,17 @@ public class MapaController {
 
     // Zones de la sala (de moment, dades de test)
     private List<ZonaMapa> zones;
+        // Tasca 26: llistat d'entrades venudes
+    @FXML private TableView<EntradaVenuda> tablaEntrades;
+    @FXML private TableColumn<EntradaVenuda, String> colDataCompra;
+    @FXML private TableColumn<EntradaVenuda, String> colLocalitzador;
+    @FXML private TableColumn<EntradaVenuda, String> colTipus;
+    @FXML private TableColumn<EntradaVenuda, String> colSeient;
+    @FXML private TableColumn<EntradaVenuda, String> colComprador;
+    @FXML private TableColumn<EntradaVenuda, String> colEstat;
+
+    private final ObservableList<EntradaVenuda> entradesVenudes = FXCollections.observableArrayList();
+    private String idEsdeveniment;
 
     @FXML
     private void initialize() {
@@ -35,7 +55,10 @@ public class MapaController {
 
         mostrarOcupacio();
         dibuixarMapa();
+        configurarTaulaEntrades();
+        ClientWs.establirReceptor(this::rebreMissatge);
     }
+    
 
     private void mostrarOcupacio() {
         String text = "|  ";
@@ -104,7 +127,56 @@ public class MapaController {
 
         contenidorMapa.getChildren().add(graella);
     }
+        private void configurarTaulaEntrades() {
+        colDataCompra.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().dataHora()));
+        colLocalitzador.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().localitzador()));
+        colTipus.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().tipus()));
+        colSeient.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().seient()));
+        colComprador.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().comprador()));
+        colEstat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().estat()));
+        tablaEntrades.setItems(entradesVenudes);
+    }
 
+    // El crida VendesController en obrir el mapa, amb l'esdeveniment triat
+    public void setEsdeveniment(String idEsdeveniment) {
+        this.idEsdeveniment = idEsdeveniment;
+        actualitzarEntrades();
+    }
+
+    @FXML
+    private void actualitzarEntrades() {
+        if (idEsdeveniment == null) return;
+
+        JSONObject peticio = new JSONObject();
+        peticio.put("type", "getEntradesVendudes");
+        peticio.put("idEsdeveniment", idEsdeveniment);
+        ClientWs.enviar(peticio.toString());
+    }
+
+    private void rebreMissatge(String message) {
+        try {
+            JSONObject resposta = new JSONObject(message);
+            if (!"entradesVendudes".equals(resposta.optString("type"))) return;
+
+            JSONArray dades = resposta.getJSONArray("data");
+            java.util.List<EntradaVenuda> llista = new java.util.ArrayList<>();
+
+            for (int i = 0; i < dades.length(); i++) {
+                JSONObject e = dades.getJSONObject(i);
+                llista.add(new EntradaVenuda(
+                        e.optString("dataCompra"),
+                        e.optString("localitzador"),
+                        e.optString("tipus"),
+                        e.optString("seient"),
+                        e.optString("comprador"),
+                        e.optString("estat")));
+            }
+
+            Platform.runLater(() -> entradesVenudes.setAll(llista));
+        } catch (Exception e) {
+            System.out.println("Error processant les entrades venudes: " + e.getMessage());
+        }
+    }
     @FXML
     private void tornar(ActionEvent event) {
         try {
