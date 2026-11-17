@@ -1,14 +1,15 @@
 package com.projecte;
 
+import java.io.InputStream;
+
+import org.w3c.dom.Document;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
-import java.io.InputStream;
-
-import org.w3c.dom.Document;
 
 public class MainApp extends Application {
     @Override
@@ -25,7 +26,10 @@ public class MainApp extends Application {
 
                 // Si reconecta bien, nos saltamos la configuración
                 if (ClientWs.connectar(url)) {
-                    pantalla = "/assets/llistat_vendes.fxml";
+                    String ubicacio = doc.getDocumentElement().getAttribute("ubicacio");   // NUEVO
+                    pantalla = "Porta".equals(ubicacio)                                     // CAMBIA
+                            ? "/assets/control_portes.fxml"
+                            : "/assets/llistat_vendes.fxml";
                 }
                 // Si falla, nos quedamos en pantalla_inici para corregir
             }

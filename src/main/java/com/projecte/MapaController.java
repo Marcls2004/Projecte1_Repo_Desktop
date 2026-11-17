@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -20,6 +22,8 @@ import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
@@ -30,7 +34,18 @@ public class MapaController {
     @FXML private AnchorPane contenidorMapa;
     @FXML private Label lbOcupacio;
 
-    // Esdeveniment del qual es mostra el mapa (el posa el botó "Mapa" del llistat)
+    // Tasca 26: llistat d'entrades venudes (sota el mapa)
+    @FXML private TableView<EntradaVenuda> tablaEntrades;
+    @FXML private TableColumn<EntradaVenuda, String> colDataCompra;
+    @FXML private TableColumn<EntradaVenuda, String> colLocalitzador;
+    @FXML private TableColumn<EntradaVenuda, String> colTipus;
+    @FXML private TableColumn<EntradaVenuda, String> colSeient;
+    @FXML private TableColumn<EntradaVenuda, String> colComprador;
+    @FXML private TableColumn<EntradaVenuda, String> colEstat;
+
+    private final ObservableList<EntradaVenuda> entradesVenudes = FXCollections.observableArrayList();
+
+    // Esdeveniment del qual es mostra el mapa (el posa CellaMapa o VendesController.obrirMapa)
     public static String idEsdeveniment;
 
     // Colors per a les zones, en ordre
@@ -41,30 +56,60 @@ public class MapaController {
 
     @FXML
     private void initialize() {
+        configurarTaulaEntrades();
+
+        // ClientWs només admet un receptor: un de sol per als dos tipus de resposta
+        ClientWs.establirReceptor(this::rebreMissatge);
+
         if (idEsdeveniment == null) {
             lbOcupacio.setText("Tria un esdeveniment del llistat amb el botó \"Mapa\"");
             return;
         }
-
-        lbOcupacio.setText("Carregant el mapa...");
-
-        // Cada cop que s'obre el mapa es demanen les dades actuals al servidor
-        ClientWs.establirReceptor(new Consumer<String>() {
-            @Override
-            public void accept(String missatge) {
-                rebreMissatge(missatge);
-            }
-        });
-        ClientWs.enviar("{\"type\":\"getMapa\",\"idEsdeveniment\":\"" + idEsdeveniment + "\"}");
+        carregarDades();
     }
 
-    // Resposta del servidor: zones del recinte i entrades venudes de l'esdeveniment
-    private void rebreMissatge(String missatge) {
-        JSONObject resposta = new JSONObject(missatge);
-        if (!"mapa".equals(resposta.optString("type"))) {
-            return;
-        }
+    // Demana al servidor el mapa (Tasca 19) i el llistat de vendes (Tasca 26)
+    private void carregarDades() {
+        lbOcupacio.setText("Carregant el mapa...");
+        ClientWs.enviar("{\"type\":\"getMapa\",\"idEsdeveniment\":\"" + idEsdeveniment + "\"}");
+        actualitzarEntrades();
+    }
 
+    // El crida VendesController si el mapa s'obre sense haver triat l'esdeveniment abans
+    public void setEsdeveniment(String id) {
+        if (id == null || id.equals(idEsdeveniment)) return;   // ja carregat per initialize()
+        idEsdeveniment = id;
+        carregarDades();
+    }
+
+    @FXML
+    private void actualitzarEntrades() {
+        if (idEsdeveniment == null) return;
+
+        JSONObject peticio = new JSONObject();
+        peticio.put("type", "getEntradesVendudes");
+        peticio.put("idEsdeveniment", idEsdeveniment);
+        ClientWs.enviar(peticio.toString());
+    }
+
+    // Receptor únic: reparteix segons el tipus de resposta
+    private void rebreMissatge(String missatge) {
+        try {
+            JSONObject resposta = new JSONObject(missatge);
+            String type = resposta.optString("type");
+
+            if ("mapa".equals(type)) {
+                processarMapa(resposta);
+            } else if ("entradesVendudes".equals(type)) {
+                processarEntradesVendudes(resposta);
+            }
+        } catch (Exception e) {
+            System.out.println("Error processant la resposta del servidor: " + e.getMessage());
+        }
+    }
+
+    // Resposta "mapa": zones del recinte i entrades venudes de l'esdeveniment
+    private void processarMapa(JSONObject resposta) {
         List<ZonaMapa> zonesNoves = new ArrayList<>();
         JSONArray jZones = resposta.getJSONArray("zones");
 
@@ -104,6 +149,35 @@ public class MapaController {
                 dibuixarMapa();
             }
         });
+    }
+
+    // Resposta "entradesVendudes": llistat cronològic sota el mapa
+    private void processarEntradesVendudes(JSONObject resposta) {
+        JSONArray dades = resposta.getJSONArray("data");
+        List<EntradaVenuda> llista = new ArrayList<>();
+
+        for (int i = 0; i < dades.length(); i++) {
+            JSONObject e = dades.getJSONObject(i);
+            llista.add(new EntradaVenuda(
+                    e.optString("dataCompra"),
+                    e.optString("localitzador"),
+                    e.optString("tipus"),
+                    e.optString("seient"),
+                    e.optString("comprador"),
+                    e.optString("estat")));
+        }
+
+        Platform.runLater(() -> entradesVenudes.setAll(llista));
+    }
+
+    private void configurarTaulaEntrades() {
+        colDataCompra.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().dataHora()));
+        colLocalitzador.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().localitzador()));
+        colTipus.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().tipus()));
+        colSeient.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().seient()));
+        colComprador.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().comprador()));
+        colEstat.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().estat()));
+        tablaEntrades.setItems(entradesVenudes);
     }
 
     private void mostrarOcupacio(String titol) {
@@ -161,7 +235,7 @@ public class MapaController {
                     if (seient.estaVenut()) {
                         boto.setText("X");
                         boto.setStyle("-fx-background-color: #7f8c8d; -fx-text-fill: white; -fx-padding: 0;");
-                        
+
                         final ZonaMapa zonaFinal = zona;
                         final Seient seientFinal = seient;
 
@@ -201,7 +275,7 @@ public class MapaController {
 
     private void mostrarDetallVenda(ZonaMapa zona, Seient seient) {
         Alert alerta = new Alert(Alert.AlertType.INFORMATION);
-        
+
         alerta.setTitle("Detall de la venda");
         alerta.setHeaderText("Localitzador: " + seient.getLocalitzador());
         alerta.setContentText(

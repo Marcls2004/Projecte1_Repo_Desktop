@@ -1,6 +1,14 @@
 package com.projecte;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -14,6 +22,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.stage.Stage;
+
 import javafx.util.Callback;
 import javafx.beans.property.SimpleStringProperty;
 
@@ -219,7 +228,14 @@ public class VendesController {
 
     @FXML
     private void handleControlPortes(javafx.event.ActionEvent event) {
-        System.out.println("[DEMO] Clic en Control de Portes - Funcionalidad desvinculada para la demo");
+        try {
+            Node boto = (Node) event.getSource();
+            Stage stage = (Stage) boto.getScene().getWindow();
+            Parent root = FXMLLoader.load(getClass().getResource("/assets/control_portes.fxml"));
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            System.out.println("No s'ha pogut obrir el control de portes: " + e.getMessage());
+        }
     }
 
     @FXML
@@ -229,11 +245,24 @@ public class VendesController {
 
     @FXML
     public void obrirMapa(javafx.event.ActionEvent event) {
+
         try {
             Node boto = (Node) event.getSource();
             Stage stage = (Stage) boto.getScene().getWindow();
-            
-            Parent root = FXMLLoader.load(getClass().getResource("/assets/mapa_sala.fxml"));
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/mapa_sala.fxml"));
+            Parent root = loader.load();
+
+            // Esdeveniment seleccionat a la taula (o el primer de la llista filtrada)
+            Esdeveniment esde = tablaVendes.getSelectionModel().getSelectedItem();
+            if (esde == null && !llistaFiltrada.isEmpty()) {
+                esde = llistaFiltrada.get(0);
+            }
+            if (esde != null) {
+                MapaController mapa = loader.getController();
+                mapa.setEsdeveniment(esde.getId());
+            }
+
             stage.getScene().setRoot(root);
         } catch (IOException e) {
             System.out.println("No s'ha pogut obrir la pantalla del mapa de sales: " + e.getMessage());

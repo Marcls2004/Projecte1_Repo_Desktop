@@ -31,6 +31,24 @@
                </font>
             </Label>
             <Region HBox.hgrow="ALWAYS" />
+         </children>
+      </HBox>
+      
+      <!-- MENÚ PRINCIPAL -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label text="MENU:">
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            
+            <!-- EL BOTÓN DE MAPA SALA SE QUEDA COMPLETAMENTE UNBOUND / SUELTO -->
+            <Button mnemonicParsing="false" onAction="#obrirMapa" text="Mapa Sala" />
+            <Button mnemonicParsing="false" onAction="#handleLlistatVendes" text="Llistat de vendes" visible="false" />
+            
+            <Button mnemonicParsing="false" onAction="#handleControlPortes" text="Control Portes" />
+            <Button mnemonicParsing="false" onAction="#handleCataleg" text="Cataleg" visible="false" />
             <Button id="btConfig" mnemonicParsing="false" text="Configuració" onAction="#obrirConfiguracio"/>
          </children>
       </HBox>

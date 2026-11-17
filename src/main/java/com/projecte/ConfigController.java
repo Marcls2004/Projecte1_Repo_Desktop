@@ -48,8 +48,8 @@ public class ConfigController {
 
         try {
             Stage stage = (Stage) lbMissatge.getScene().getWindow();
-            Parent root = FXMLLoader.load(getClass().getResource("/assets/llistat_vendes.fxml"));
-            stage.getScene().setRoot(root);
+            String desti = "Porta".equals(ubicacio) ? "/assets/control_portes.fxml" : "/assets/llistat_vendes.fxml";
+            Parent root = FXMLLoader.load(getClass().getResource(desti));            stage.getScene().setRoot(root);
         } catch (Exception e) {
             mostrarError("No s'ha pogut obrir la pantalla de vendes");
         }
