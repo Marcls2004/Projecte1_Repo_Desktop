@@ -1,0 +1,284 @@
+package com.projecte;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.stage.Stage;
+
+import javafx.util.Callback;
+import javafx.beans.property.SimpleStringProperty;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public class VendesController {
+
+    @FXML private TableView<Esdeveniment> tablaVendes;
+    @FXML private TableColumn<Esdeveniment, String> colId;
+    @FXML private TableColumn<Esdeveniment, String> colData;
+    @FXML private TableColumn<Esdeveniment, String> colEspectacle;
+    @FXML private TableColumn<Esdeveniment, String> colImport;
+
+    @FXML private MenuButton menuEspectacle;
+
+    private ObservableList<Esdeveniment> llistaEsdeveniments =
+            FXCollections.observableArrayList();
+
+    private FilteredList<Esdeveniment> llistaFiltrada;
+
+    @FXML
+    public void initialize() {
+
+        // Configuramos las columnas para mostrar acontecimientos.
+        colId.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getId()));
+
+        colData.setCellValueFactory(cell ->
+                new SimpleStringProperty(
+                        cell.getValue().getDataHora().replace("T", " ")
+                ));
+
+        colEspectacle.setCellValueFactory(cell ->
+                new SimpleStringProperty(cell.getValue().getNom()));
+
+        colImport.setText("Tipus d'entrada");
+
+        colImport.setCellValueFactory(cell -> {
+            StringBuilder text = new StringBuilder();
+
+            for (TipusEntrada entrada :
+                    cell.getValue().getTipusEntrades()) {
+
+                if (text.length() > 0) {
+                    text.append(" | ");
+                }
+
+                text.append(entrada.getNomTipus())
+                    .append(": ")
+                    .append(entrada.getPreuTipus())
+                    .append(" €");
+            }
+
+            return new SimpleStringProperty(text.toString());
+        });
+
+        // Preparamos la lista y la tabla.
+        llistaFiltrada = new FilteredList<>(
+                llistaEsdeveniments, p -> true
+        );
+
+        tablaVendes.setItems(llistaFiltrada);
+
+        // Spec 19: columna amb un botó "Mapa" a cada fila (veure CellaMapa)
+        MapaController.idEsdeveniment = null;
+        TableColumn<Esdeveniment, Void> colMapa = new TableColumn<>("Mapa");
+        colMapa.setCellFactory(new Callback<TableColumn<Esdeveniment, Void>, TableCell<Esdeveniment, Void>>() {
+            @Override
+            public TableCell<Esdeveniment, Void> call(TableColumn<Esdeveniment, Void> columna) {
+                return new CellaMapa(VendesController.this);
+            }
+        });
+        tablaVendes.getColumns().add(colMapa);
+
+        // Escuchamos los mensajes del servidor.
+        ClientWs.establirReceptor(this::rebreMissatge);
+
+        // Solicitamos los acontecimientos.
+        ClientWs.enviar("{\"type\":\"getEsdeveniments\"}");
+        
+    }
+
+    private void rebreMissatge(String message) {
+
+        try {
+            JSONObject resposta = new JSONObject(message);
+
+            if (!"esdeveniments".equals(
+                    resposta.optString("type"))) {
+                return;
+            }
+
+            JSONArray dades = resposta.getJSONArray("data");
+
+            List<Esdeveniment> esdeveniments = new ArrayList<>();
+
+            for (int i = 0; i < dades.length(); i++) {
+
+                JSONObject jsonEsdeveniment =
+                        dades.getJSONObject(i);
+
+                JSONArray jsonEntrades =
+                        jsonEsdeveniment.getJSONArray("tipusEntrades");
+
+                List<TipusEntrada> entrades = new ArrayList<>();
+
+                for (int j = 0; j < jsonEntrades.length(); j++) {
+
+                    JSONObject jsonEntrada =
+                            jsonEntrades.getJSONObject(j);
+
+                    TipusEntrada entrada = new TipusEntrada(
+                            jsonEntrada.getString("idTipus"),
+                            jsonEntrada.getString("nomTipus"),
+                            jsonEntrada.getDouble("preuTipus"),
+                            jsonEntrada.getInt("quotaTipus"),
+                            jsonEntrada.optString(
+                                    "tipusZona", "general")
+                    );
+
+                    entrades.add(entrada);
+                }
+
+                Esdeveniment esdeveniment = new Esdeveniment(
+                        jsonEsdeveniment.getString("id"),
+                        jsonEsdeveniment.getString("nom"),
+                        jsonEsdeveniment.getString("dataHora"),
+                        jsonEsdeveniment.getString("categoria"),
+                        jsonEsdeveniment.getString("descripcio"),
+                        entrades
+                );
+
+                esdeveniments.add(esdeveniment);
+            }
+
+            Platform.runLater(() -> {
+
+                llistaEsdeveniments.setAll(esdeveniments);
+
+                // Actualizamos el filtro de acontecimientos.
+                if (menuEspectacle != null) {
+
+                    menuEspectacle.getItems().clear();
+
+                    MenuItem tots = new MenuItem("Tots");
+                    tots.setOnAction(e -> aplicarFiltro("Tots"));
+
+                    menuEspectacle.getItems().add(tots);
+
+                    for (Esdeveniment esdeveniment :
+                            llistaEsdeveniments) {
+
+                        MenuItem item = new MenuItem(
+                                esdeveniment.getNom());
+
+                        item.setOnAction(e ->
+                                aplicarFiltro(esdeveniment.getNom()));
+
+                        menuEspectacle.getItems().add(item);
+                    }
+                }
+
+                System.out.println(
+                        "Esdeveniments carregats: "
+                        + llistaEsdeveniments.size());
+            });
+
+        } catch (Exception e) {
+            System.out.println(
+                    "Error processant els esdeveniments:");
+            e.printStackTrace();
+        }
+    }
+
+    private void aplicarFiltro(String nomEspectacle) {
+
+        if ("Tots".equals(nomEspectacle)) {
+
+            llistaFiltrada.setPredicate(esdeveniment -> true);
+
+            menuEspectacle.setText("Espectacle: Tots");
+
+        } else {
+
+            llistaFiltrada.setPredicate(esdeveniment ->
+                    esdeveniment.getNom().equals(nomEspectacle));
+
+            menuEspectacle.setText(
+                    "Espectacle: " + nomEspectacle);
+        }
+    }
+    
+    @FXML
+    private void handleLlistatVendes(javafx.event.ActionEvent event) {
+        System.out.println("[DEMO] Clic en Llistat de vendes - Cambiando a vista de lista");
+        // Aquí puedes meter código para refrescar la tabla si lo necesitas
+    }
+
+    @FXML
+    private void handleControlPortes(javafx.event.ActionEvent event) {
+        try {
+            Node boto = (Node) event.getSource();
+            Stage stage = (Stage) boto.getScene().getWindow();
+            Parent root = FXMLLoader.load(getClass().getResource("/assets/control_portes.fxml"));
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            System.out.println("No s'ha pogut obrir el control de portes: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleCataleg(javafx.event.ActionEvent event) {
+        System.out.println("[DEMO] Clic en Cataleg - Funcionalidad desvinculada para la demo");
+    }
+
+    @FXML
+    public void obrirMapa(javafx.event.ActionEvent event) {
+
+        try {
+            Node boto = (Node) event.getSource();
+            Stage stage = (Stage) boto.getScene().getWindow();
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/assets/mapa_sala.fxml"));
+            Parent root = loader.load();
+
+            // Esdeveniment seleccionat a la taula (o el primer de la llista filtrada)
+            Esdeveniment esde = tablaVendes.getSelectionModel().getSelectedItem();
+            if (esde == null && !llistaFiltrada.isEmpty()) {
+                esde = llistaFiltrada.get(0);
+            }
+            if (esde != null) {
+                MapaController mapa = loader.getController();
+                mapa.setEsdeveniment(esde.getId());
+            }
+
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            System.out.println("No s'ha pogut obrir la pantalla del mapa de sales: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    public void obrirConfiguracio(javafx.event.ActionEvent event) {
+        try {
+            Node boto = (Node) event.getSource();
+            Stage stage = (Stage) boto.getScene().getWindow();
+            
+            Parent root = FXMLLoader.load(getClass().getResource("/assets/config.fxml"));
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            System.out.println("No s'ha pogut obrir la pantalla de configuració: " + e.getMessage());
+        }
+    }
+}
